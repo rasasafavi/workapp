@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import '../styles/BayiDetay.css';
 import { database } from '../firebase-config';
 import { ref, onValue } from 'firebase/database';

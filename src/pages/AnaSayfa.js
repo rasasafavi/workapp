@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { getWeekDates } from '../utils/weekHelpers';
 import '../styles/AnaSayfa.css';
 import { database } from '../firebase-config';
-import { ref, onValue, set, get } from 'firebase/database';
+import { ref, set, get } from 'firebase/database';
 
 function AnaSayfa() {
   const [orders, setOrders] = useState([]);
