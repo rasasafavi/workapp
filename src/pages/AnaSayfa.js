@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+
 import { getWeekDates } from '../utils/weekHelpers';
 import '../styles/AnaSayfa.css';
 import { database } from '../firebase-config';

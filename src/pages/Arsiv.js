@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import '../styles/Arsiv.css';
 import { database } from '../firebase-config';
 import { ref, onValue, get, remove } from 'firebase/database';
