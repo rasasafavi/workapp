@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+
 import '../styles/UrunDetay.css';
 import { database } from '../firebase-config';
 import { ref, onValue } from 'firebase/database';

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import '../styles/Bayiler.css';
 import { database } from '../firebase-config';
 import { ref, onValue } from 'firebase/database';

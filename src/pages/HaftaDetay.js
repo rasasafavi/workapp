@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+
 import { formatWeekDate } from '../utils/weekHelpers';
 import '../styles/HaftaDetay.css';
 import { database } from '../firebase-config';
