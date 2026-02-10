@@ -1,0 +1,247 @@
+.hafta-detay {
+  width: 100%;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.page-header h1 {
+  font-size: 28px;
+  color: #333;
+  font-weight: 700;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-secondary,
+.btn-primary,
+.btn-export {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-secondary {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.btn-secondary:hover {
+  background: #d0d0d0;
+}
+
+.btn-primary {
+  background: #4caf50;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #45a049;
+}
+
+.btn-export {
+  background: #2196f3;
+  color: white;
+}
+
+.btn-export:hover {
+  background: #1976d2;
+}
+
+/* Tablo */
+.table-container {
+  overflow-x: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+}
+
+.orders-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.orders-table thead {
+  background: #f5f5f5;
+}
+
+.orders-table th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+  color: #555;
+  border-bottom: 2px solid #ddd;
+  border-right: 1px solid #e0e0e0;
+}
+
+.orders-table th:last-child {
+  border-right: none;
+}
+
+.orders-table td {
+  padding: 16px 15px;
+  border-bottom: 1px solid #e0e0e0;
+  border-right: 1px solid #f0f0f0;
+}
+
+.orders-table td:last-child {
+  border-right: none;
+}
+
+.orders-table tbody tr:hover {
+  background: #fafafa;
+}
+
+/* Çıkar Butonu */
+.remove-btn {
+  background: #f44336;
+  color: white;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.remove-btn:hover {
+  background: #d32f2f;
+}
+
+/* Durum Hücresi */
+.status-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+.status-text {
+  flex: 1;
+  font-size: 13px;
+  color: #666;
+}
+
+.status-btn {
+  background: #2196f3;
+  color: white;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.status-btn:hover {
+  background: #1976d2;
+}
+
+.status-menu {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  border: 2px solid #2196f3;
+  border-radius: 12px;
+  box-shadow: 0 6px 30px rgba(0,0,0,0.3);
+  z-index: 1000;
+  min-width: 200px;
+  overflow: hidden;
+}
+.status-option {
+  padding: 12px 15px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.2s;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.status-option:last-child {
+  border-bottom: none;
+}
+
+.status-option:hover {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding-left: 20px;
+}
+
+/* Print Stilleri */
+@media print {
+  /* Menü ve yan şeyleri gizle */
+  body * {
+    visibility: hidden;
+  }
+  
+  .table-container,
+  .table-container * {
+    visibility: visible;
+  }
+  
+  .page-header h1 {
+    visibility: visible;
+    margin-bottom: 20px;
+  }
+  
+  .table-container {
+    position: absolute;
+    left: 0;
+    top: 50px;
+    width: 100%;
+  }
+  
+  /* Butonları gizle */
+  .header-buttons,
+  .remove-btn,
+  .status-btn {
+    display: none !important;
+  }
+  
+  /* Tablo düzeni */
+  .orders-table {
+    font-size: 10px;
+    border: 1px solid #000;
+  }
+  
+  .orders-table th,
+  .orders-table td {
+    padding: 6px 8px;
+    border: 1px solid #000;
+  }
+}
+
+/* Gecikmiş Sipariş Stilleri */
+.delayed-row {
+  background: #ffebee !important;
+}
+
+.delayed-row:hover {
+  background: #ffcdd2 !important;
+}
+
+.delayed-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 4px 8px;
+  background: #f44336;
+  color: white;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}

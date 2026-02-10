@@ -1,0 +1,244 @@
+.planlama {
+  width: 100%;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.page-header h1 {
+  font-size: 28px;
+  color: #333;
+  font-weight: 700;
+}
+
+/* Hafta Butonları - Geniş ve Dolgun */
+.week-buttons {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 50px;
+}
+
+.week-btn {
+  flex: 1;
+  padding: 25px 60px;
+  background: linear-gradient(135deg, #c8e6c9 0%, #e8f5e9 100%);
+  color: #2e7d32;
+  border: none;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.2);
+}
+
+.week-btn:hover {
+  background: linear-gradient(135deg, #a5d6a7 0%, #c8e6c9 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+/* Kartlar ve Tarih Filtresi Container */
+.stats-container {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+  margin-top: 30px;
+}
+
+/* İstatistik Kartları Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px 50px;
+  flex: 1;
+}
+
+.stat-card {
+  position: relative;
+  background: white;
+  border-radius: 15px;
+  padding: 85px 40px;
+  min-height: 150px;
+  transition: all 0.3s;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  opacity: 0.08;
+  z-index: 0;
+}
+
+/* Toplam Sipariş - Sarı */
+.stat-card:nth-child(1)::before {
+  background: linear-gradient(to top, #ffc107, transparent);
+}
+
+.stat-card:nth-child(1) .stat-number {
+  color: #f57c00;
+}
+
+.stat-card:nth-child(1) .stat-label {
+  color: #f57c00;
+}
+
+/* Geciken - Kırmızı */
+.stat-card:nth-child(2)::before {
+  background: linear-gradient(to top, #f44336, transparent);
+}
+
+.stat-card:nth-child(2) .stat-number {
+  color: #c62828;
+}
+
+.stat-card:nth-child(2) .stat-label {
+  color: #c62828;
+}
+
+/* Üretimde - Mavi */
+.stat-card:nth-child(3)::before {
+  background: linear-gradient(to top, #2196f3, transparent);
+}
+
+.stat-card:nth-child(3) .stat-number {
+  color: #1565c0;
+}
+
+.stat-card:nth-child(3) .stat-label {
+  color: #1565c0;
+}
+
+/* Tamamlanmış - Yeşil */
+.stat-card:nth-child(4)::before {
+  background: linear-gradient(to top, #4caf50, transparent);
+}
+
+.stat-card:nth-child(4) .stat-number {
+  color: #2e7d32;
+}
+
+.stat-card:nth-child(4) .stat-label {
+  color: #2e7d32;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+
+.stat-label {
+  position: relative;
+  z-index: 1;
+  font-size: 35px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: left;
+  margin-bottom: 20px;
+}
+
+.stat-number {
+  position: relative;
+  z-index: 1;
+  font-size: 72px;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1;
+}
+
+/* Tarih Filtreleri - Sağda Alt Alta */
+.date-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 10px;
+  min-width: 300px;
+}
+
+.date-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.date-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+}
+
+.date-input {
+  padding: 12px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: #4caf50;
+}
+/* Tıklanabilir kartlar */
+.stat-card.clickable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.stat-card.clickable:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+/* Pakette kartı */
+.pakette-card {
+  background: linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%);
+  padding: 70px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  color: white;
+  text-align: left;
+  min-width: 280px;
+  min-height: 120px;
+  margin-top: 80px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.pakette-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.pakette-card .stat-label {
+  font-size: 40px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  opacity: 0.95;
+}
+
+.pakette-card .stat-number {
+  font-size: 48px;
+  font-weight: 700;
+}
+
+/* Date filters düzenlemesi */
+.date-filters {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
