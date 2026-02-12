@@ -7,13 +7,13 @@ import { ref, get } from 'firebase/database';
 
 function Planlama() {
   const navigate = useNavigate();
-const [stats, setStats] = useState({
-  toplam: 0,
-  geciken: 0,
-  uretimde: 0,
-  tamamlanmis: 0,
-  pakette: 0
-});
+  const [stats, setStats] = useState({
+    toplam: 0,
+    geciken: 0,
+    uretimde: 0,
+    tamamlanmis: 0,
+    pakette: 0
+  });
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -36,6 +36,8 @@ const [stats, setStats] = useState({
       const ordersSnapshot = await get(ordersRef);
       
       let toplamSiparis = 0;
+      let gecikenSayisi = 0;
+      
       if (ordersSnapshot.exists()) {
         const allOrders = Object.values(ordersSnapshot.val());
         
@@ -56,16 +58,40 @@ const [stats, setStats] = useState({
         }
         
         toplamSiparis = filteredOrders.length;
+        
+        // GECİKEN: Ana sayfada + 15 gün geçmiş + Durum değişmemiş
+        const bugun = new Date();
+        filteredOrders.forEach(order => {
+          const durum = order.DURUMU || 'BEKLEMEDE';
+          
+          // Sadece BEKLEMEDE olanlar gecikmiş sayılır
+          if (order.TARIH && (durum === 'BEKLEMEDE' || durum === 'Bekliyor' || durum === '')) {
+            const orderDateStr = order.TARIH.toString().split(' ')[0];
+            if (orderDateStr.includes('.') || orderDateStr.includes('/')) {
+              const parts = orderDateStr.split(/[./]/);
+              if (parts.length === 3) {
+                const day = parseInt(parts[0]);
+                const month = parseInt(parts[1]) - 1;
+                const year = parseInt(parts[2]); // 2026 gibi zaten 4 haneli
+                const orderDate = new Date(year, month, day);
+                
+                const gunFarki = Math.floor((bugun - orderDate) / (1000 * 60 * 60 * 24));
+                
+                if (gunFarki > 15) {
+                  gecikenSayisi++;
+                }
+              }
+            }
+          }
+        });
       }
 
       // 2. HAFTALARDAKI SİPARİŞLERİ TOPLA
-      let gecikenSayisi = 0;
       let uretimdeSayisi = 0;
       let tamamlanmisSayisi = 0;
       let paketteSayisi = 0;
 
-      const bugun = new Date();
-      const uretimDurumlari = ['DEMİRHANEDE', 'İSKELETHANEDE','SÜNGER', 'BOYADA', 'KESİMDE', 'DİKİMDE', 'DÖŞEME','PAKETTE'];
+      const uretimDurumlari = ['DEMİRHANEDE', 'İSKELETHANEDE', 'SÜNGER', 'BOYADA', 'KESİMDE', 'DİKİMDE', 'DÖŞEME', 'PAKETTE', 'ÜRETİMDE'];
 
       for (let week = 1; week <= 4; week++) {
         const weekRef = ref(database, `haftalar/week_${week}`);
@@ -74,16 +100,6 @@ const [stats, setStats] = useState({
         
         weekData.forEach(order => {
           const durum = order.DURUMU || 'BEKLEMEDE';
-          
-      // GEÇİKEN: Tarihten 15 gün geçmiş + BEKLEMEDE
-if (order.TARIH && (durum === 'BEKLEMEDE' || durum === 'Bekliyor' || !durum)) {
-  const orderDate = new Date(order.TARIH);
-  const gunFarki = Math.floor((bugun - orderDate) / (1000 * 60 * 60 * 24));
-  
-  if (gunFarki > 15) {
-    gecikenSayisi++;
-  }
-}
           
           // ÜRETİMDE
           if (uretimDurumlari.includes(durum)) {
@@ -94,10 +110,11 @@ if (order.TARIH && (durum === 'BEKLEMEDE' || durum === 'Bekliyor' || !durum)) {
           if (durum === 'SEVK EDİLDİ') {
             tamamlanmisSayisi++;
           }
+          
           // PAKETTE
-if (durum === 'PAKETTE') {
-  paketteSayisi++;
-}
+          if (durum === 'PAKETTE') {
+            paketteSayisi++;
+          }
         });
       }
 
@@ -118,15 +135,15 @@ if (durum === 'PAKETTE') {
     navigate(`/planlama/hafta/${weekNumber}`);
   };
 
-const handleCardClick = (cardType) => {
-  if (cardType === 'geciken') {
-    navigate('/planlama/geciken');
-  } else if (cardType === 'uretimde') {
-    navigate('/planlama/uretimde');
-  } else if (cardType === 'pakette') {
-    navigate('/planlama/pakette');
-  }
-};
+  const handleCardClick = (cardType) => {
+    if (cardType === 'geciken') {
+      navigate('/planlama/geciken');
+    } else if (cardType === 'uretimde') {
+      navigate('/planlama/uretimde');
+    } else if (cardType === 'pakette') {
+      navigate('/planlama/pakette');
+    }
+  };
 
   return (
     <div className="planlama">
@@ -146,24 +163,24 @@ const handleCardClick = (cardType) => {
       <div className="stats-container">
         <div className="stats-grid">
           <div className="stat-card">
-  <div className="stat-label">TOPLAM SİPARİŞ</div>
-  <div className="stat-number">{stats.toplam}</div>
-</div>
+            <div className="stat-label">TOPLAM SİPARİŞ</div>
+            <div className="stat-number">{stats.toplam}</div>
+          </div>
 
-<div className="stat-card clickable" onClick={() => handleCardClick('geciken')}>
-  <div className="stat-label">GEÇİKEN</div>
-  <div className="stat-number">{stats.geciken}</div>
-</div>
+          <div className="stat-card clickable" onClick={() => handleCardClick('geciken')}>
+            <div className="stat-label">GEÇİKEN</div>
+            <div className="stat-number">{stats.geciken}</div>
+          </div>
 
-<div className="stat-card clickable" onClick={() => handleCardClick('uretimde')}>
-  <div className="stat-label">ÜRETİMDE</div>
-  <div className="stat-number">{stats.uretimde}</div>
-</div>
+          <div className="stat-card clickable" onClick={() => handleCardClick('uretimde')}>
+            <div className="stat-label">ÜRETİMDE</div>
+            <div className="stat-number">{stats.uretimde}</div>
+          </div>
 
-<div className="stat-card">
-  <div className="stat-label">TAMAMLANMIŞ</div>
-  <div className="stat-number">{stats.tamamlanmis}</div>
-</div>
+          <div className="stat-card">
+            <div className="stat-label">TAMAMLANMIŞ</div>
+            <div className="stat-number">{stats.tamamlanmis}</div>
+          </div>
         </div>
 
         <div className="date-filters">
@@ -186,14 +203,13 @@ const handleCardClick = (cardType) => {
             />
           </div>
           
-  <div className="pakette-card clickable" onClick={() => handleCardClick('pakette')}>
-    <div className="stat-label">PAKETTE</div>
-    <div className="stat-number">{stats.pakette}</div>
-  </div>
-</div>
+          <div className="pakette-card clickable" onClick={() => handleCardClick('pakette')}>
+            <div className="stat-label">PAKETTE</div>
+            <div className="stat-number">{stats.pakette}</div>
+          </div>
         </div>
       </div>
-  
+    </div>
   );
 }
 

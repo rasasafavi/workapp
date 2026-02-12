@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
 import { formatWeekDate } from '../utils/weekHelpers';
 import '../styles/HaftaDetay.css';
 import { database } from '../firebase-config';
@@ -12,19 +11,13 @@ function HaftaDetay() {
   const [orders, setOrders] = useState([]);
   const [showStatusMenu, setShowStatusMenu] = useState(null);
   const [showStagesMenu, setShowStagesMenu] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterCity, setFilterCity] = useState('');
+  const [filterAyak, setFilterAyak] = useState('');
+  const [showCityFilter, setShowCityFilter] = useState(false);
+  const [showAyakFilter, setShowAyakFilter] = useState(false);
 
-  const statusOptions = [
-    'BEKLEMEDE',
-    'DEMİRHANEDE',
-    'İSKELETHANEDE',
-    'SÜNGER',
-    'BOYADA',
-    'KESİMDE',
-    'DİKİMDE',
-    'DÖŞEME',
-    'PAKETTE',
-    'SEVK EDİLDİ'
-  ];
+  const statusOptions = ['BEKLEMEDE', 'ÜRETİMDE', 'PAKETTE','SEVK EDİLDİ'];
 
   const allStages = [
     'DEMİRHANEDE',
@@ -79,16 +72,13 @@ function HaftaDetay() {
     
     if (!orderKey) return;
     
-    // Mevcut completedStages'i al veya boş obje oluştur
     const currentStages = weekData[orderKey].completedStages || {};
     
-    // Toggle: true ise false, false/undefined ise true
     const newStages = {
       ...currentStages,
       [stage]: !currentStages[stage]
     };
     
-    // Firebase'e kaydet
     await update(ref(database, `haftalar/week_${weekNumber}/${orderKey}`), {
       completedStages: newStages
     });
@@ -98,7 +88,7 @@ function HaftaDetay() {
 
   const handleStatusChange = async (order, status) => {
     console.log('🔄 Durum değiştiriliyor:', order.EVRAKNO, 'Yeni durum:', status);
-    
+    let isStockInsufficient = false;
     const weekRef = ref(database, `haftalar/week_${weekNumber}`);
     const snapshot = await get(weekRef);
     
@@ -114,7 +104,6 @@ function HaftaDetay() {
     
     console.log('📋 Eski durum:', oldStatus);
     
-    // STOK DÜŞME: Eğer BEKLEMEDE'den başka bir duruma geçiyorsa
     if ((oldStatus === 'BEKLEMEDE' || oldStatus === 'Bekliyor' || !oldStatus) && status !== 'BEKLEMEDE' && status !== 'Bekliyor') {
       const stk = order.STK;
       const miktar = parseInt(order.MIKTAR) || 0;
@@ -122,7 +111,6 @@ function HaftaDetay() {
       console.log('🔍 Stok kontrol:', 'STK:', stk, 'Miktar:', miktar);
       
       if (stk && miktar > 0) {
-        // STOK KONTROLÜ
         const stockRef = ref(database, 'stoklar');
         const stockSnapshot = await get(stockRef);
         
@@ -131,36 +119,31 @@ function HaftaDetay() {
           const stockKey = Object.keys(stockData).find(key => stockData[key].STK === stk);
           
           if (!stockKey) {
-            alert(`⚠️ STOK YETERSİZ!\n\n"${stk}" stokta bulunamadı!\nLütfen önce Fabrika Stok'a ekleyin.`);
-            setShowStatusMenu(null);
-            return;
+            alert(`⚠️ STOK YETERSİZ!\n\n"${stk}" stokta bulunamadı!\nLütfen önce Fabrika Stok'a ekleyin.\n\nSipariş yine de durumu değiştirilecek ama KIRMIZI işaretlenecek!`);
+            isStockInsufficient = true;
+          } else {
+            const currentStock = parseInt(stockData[stockKey].URUN_ADET) || 0;
+            
+            if (currentStock < miktar) {
+              alert(`⚠️ STOK YETERSİZ!\n\nÜrün: ${stk}\nGerekli: ${miktar} adet\nMevcut Stok: ${currentStock} adet\n\nEksik: ${miktar - currentStock} adet\n\nSipariş yine de durumu değiştirilecek ama KIRMIZI işaretlenecek!`);
+              isStockInsufficient = true;
+            } else {
+              const newStock = Math.max(0, currentStock - miktar);
+              await update(ref(database, `stoklar/${stockKey}`), {
+                URUN_ADET: newStock
+              });
+              console.log(`✅ Stok düştü: ${stk} | Eski: ${currentStock} → Yeni: ${newStock}`);
+            }
           }
-          
-          const currentStock = parseInt(stockData[stockKey].URUN_ADET) || 0;
-          
-          if (currentStock < miktar) {
-            alert(`⚠️ STOK YETERSİZ!\n\nÜrün: ${stk}\nGerekli: ${miktar} adet\nMevcut Stok: ${currentStock} adet\n\nEksik: ${miktar - currentStock} adet`);
-            setShowStatusMenu(null);
-            return;
-          }
-          
-          // Stok düş
-          const newStock = Math.max(0, currentStock - miktar);
-          await update(ref(database, `stoklar/${stockKey}`), {
-            URUN_ADET: newStock
-          });
-          
-          console.log(`✅ Stok düştü: ${stk} | Eski: ${currentStock} → Yeni: ${newStock}`);
         }
       }
     }
     
-    // Durumu güncelle
     await update(ref(database, `haftalar/week_${weekNumber}/${orderKey}`), {
-      DURUMU: status
+      DURUMU: status,
+      stokYetersiz: isStockInsufficient
     });
     
-    // Eğer SEVK EDİLDİ ise, arşive de ekle
     if (status === 'SEVK EDİLDİ') {
       const arsivRef = ref(database, 'arsiv');
       const arsivSnapshot = await get(arsivRef);
@@ -189,6 +172,32 @@ function HaftaDetay() {
     window.print();
   };
 
+  // Filtreleme
+  const filteredOrders = orders.filter(order => {
+    // Arama
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      const matches = (
+        (order.CARIADI || '').toLowerCase().includes(search) ||
+        (order.EVRAKNO || '').toLowerCase().includes(search) ||
+        (order.STA || '').toLowerCase().includes(search)
+      );
+      if (!matches) return false;
+    }
+    
+    // Şehir filtresi
+    if (filterCity && order.SEHIR !== filterCity) return false;
+    
+    // Ayak filtresi
+    if (filterAyak && order.AYAK_BILGISI !== filterAyak) return false;
+    
+    return true;
+  });
+
+  // Unique şehirler ve ayaklar
+  const uniqueCities = [...new Set(orders.map(o => o.SEHIR).filter(Boolean))].sort();
+  const uniqueAyaklar = [...new Set(orders.map(o => o.AYAK_BILGISI).filter(Boolean))].sort();
+
   return (
     <div className="hafta-detay">
       <div className="page-header">
@@ -206,34 +215,93 @@ function HaftaDetay() {
         </div>
       </div>
 
+      <div className="search-container">
+        <input 
+          type="text"
+          placeholder="🔍 CARİADI, EVRAKNO, STA Ara..."
+          className="search-input"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
       <div className="table-container">
         <table className="orders-table">
           <thead>
             <tr>
               <th></th>
-              <th>ŞEHİR</th>
+              <th>
+                ŞEHİR
+                <button 
+                  className="filter-icon-btn"
+                  onClick={() => setShowCityFilter(!showCityFilter)}
+                >
+                  🔽
+                </button>
+                {showCityFilter && (
+                  <div className="mini-filter-menu">
+                    <div className="mini-filter-option" onClick={() => { setFilterCity(''); setShowCityFilter(false); }}>
+                      Tümü
+                    </div>
+                    {uniqueCities.map(city => (
+                      <div 
+                        key={city}
+                        className="mini-filter-option"
+                        onClick={() => { setFilterCity(city); setShowCityFilter(false); }}
+                      >
+                        {city}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </th>
               <th>TARİH</th>
               <th>EVRAKNO</th>
               <th>CARİADI</th>
               <th>STK</th>
               <th>STA</th>
               <th>AÇIKLAMA</th>
-              <th>AYAK BİLGİSİ</th>
+              <th>
+                AYAK BİLGİSİ
+                <button 
+                  className="filter-icon-btn"
+                  onClick={() => setShowAyakFilter(!showAyakFilter)}
+                >
+                  🔽
+                </button>
+                {showAyakFilter && (
+                  <div className="mini-filter-menu">
+                    <div className="mini-filter-option" onClick={() => { setFilterAyak(''); setShowAyakFilter(false); }}>
+                      Tümü
+                    </div>
+                    {uniqueAyaklar.map(ayak => (
+                      <div 
+                        key={ayak}
+                        className="mini-filter-option"
+                        onClick={() => { setFilterAyak(ayak); setShowAyakFilter(false); }}
+                      >
+                        {ayak}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </th>
               <th>MİKTAR</th>
               <th>STB</th>
               <th>DURUM</th>
+              <th>ÜRETİM DURUMU</th>
             </tr>
           </thead>
           <tbody>
-            {orders.length === 0 ? (
+            {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan="12" style={{textAlign: 'center', padding: '40px', color: '#999'}}>
-                  Bu haftaya henüz sipariş eklenmemiş
+                <td colSpan="13" style={{textAlign: 'center', padding: '40px', color: '#999'}}>
+                  {orders.length === 0 ? 'Bu haftaya henüz sipariş eklenmemiş' : 'Filtre sonucu bulunamadı'}
                 </td>
               </tr>
             ) : (
-              orders.map((order, index) => (
-                <tr key={index} className={order.gecikme ? 'delayed-row' : ''}>
+              filteredOrders.map((order, index) => (
+                <tr key={index} className={`${order.gecikme ? 'delayed-row' : ''} ${order.stokYetersiz ? 'stock-insufficient-row' : ''}`}>
                   <td>
                     <button 
                       className="remove-btn"
@@ -257,53 +325,56 @@ function HaftaDetay() {
                   <td>{order.MIKTAR || '-'}</td>
                   <td>{order.STB || '-'}</td>
                   <td>
-  <div className="status-cell">
-    <span className="status-text">{order.DURUMU || 'BEKLEMEDE'}</span>
-    <button 
-      className="status-btn"
-      onClick={() => setShowStatusMenu(showStatusMenu === index ? null : index)}
-    >
-      D
-    </button>
-    <button 
-      className="stages-btn"
-      onClick={() => setShowStagesMenu(showStagesMenu === index ? null : index)}
-      title="Tamamlanan Aşamalar"
-    >
-      ✓
-    </button>
-    {showStatusMenu === index && (
-      <div className="status-menu">
-        {statusOptions.map((status) => (
-          <div 
-            key={status}
-            className="status-option"
-            onClick={() => handleStatusChange(order, status)}
-          >
-            {status}
-          </div>
-        ))}
-      </div>
-    )}
-    {showStagesMenu === index && (
-      <div className="stages-menu">
-        <div className="stages-header">Tamamlanan Aşamalar:</div>
-        {allStages.map((stage) => (
-          <div 
-            key={stage}
-            className="stage-option"
-            onClick={() => handleToggleStage(order, stage)}
-          >
-            <span className={order.completedStages?.[stage] ? 'checkbox checked' : 'checkbox'}>
-              {order.completedStages?.[stage] ? '✓' : ''}
-            </span>
-            {stage}
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
-</td>
+                    <div className="status-cell">
+                      <span className="status-text">{order.DURUMU || 'BEKLEMEDE'}</span>
+                      <button 
+                        className="status-btn"
+                        onClick={() => setShowStatusMenu(showStatusMenu === index ? null : index)}
+                      >
+                        D
+                      </button>
+                      {showStatusMenu === index && (
+                        <div className="status-menu">
+                          {statusOptions.map((status) => (
+                            <div 
+                              key={status}
+                              className="status-option"
+                              onClick={() => handleStatusChange(order, status)}
+                            >
+                              {status}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="status-cell">
+                      <button 
+                        className="stages-btn"
+                        onClick={() => setShowStagesMenu(showStagesMenu === index ? null : index)}
+                      >
+                        ⚙
+                      </button>
+                      {showStagesMenu === index && (
+                        <div className="stages-menu">
+                          <div className="stages-header">Tamamlanan Aşamalar:</div>
+                          {allStages.map((stage) => (
+                            <div 
+                              key={stage}
+                              className="stage-option"
+                              onClick={() => handleToggleStage(order, stage)}
+                            >
+                              <span className={order.completedStages?.[stage] ? 'checkbox checked' : 'checkbox'}>
+                                {order.completedStages?.[stage] ? '✓' : ''}
+                              </span>
+                              {stage}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))
             )}

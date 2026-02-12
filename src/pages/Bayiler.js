@@ -20,22 +20,25 @@ const fetchBayiler = () => {
     
     if (data) {
       const orders = Object.values(data);
-      const bayiMap = {};
+     const bayiMap = {};
 
-      orders.forEach(order => {
-        const bayiAdi = order.CARIADI;
-        
-        if (bayiAdi) {
-          if (bayiMap[bayiAdi]) {
-            bayiMap[bayiAdi].SIPARIS_SAYISI += 1;
-          } else {
-            bayiMap[bayiAdi] = {
-              BAYI_ADI: bayiAdi,
-              SIPARIS_SAYISI: 1
-            };
-          }
-        }
-      });
+orders.forEach(order => {
+  const bayiAdi = order.CARIADI;
+  const evrakNo = order.EVRAKNO;
+  
+  if (bayiAdi && evrakNo) {
+    if (!bayiMap[bayiAdi]) {
+      bayiMap[bayiAdi] = {
+        BAYI_ADI: bayiAdi,
+        evrakNoSet: new Set(),
+        SIPARIS_SAYISI: 0
+      };
+    }
+    // Evrak no'yu set'e ekle (tekrar sayılmaz)
+    bayiMap[bayiAdi].evrakNoSet.add(evrakNo);
+    bayiMap[bayiAdi].SIPARIS_SAYISI = bayiMap[bayiAdi].evrakNoSet.size;
+  }
+});
 
       const bayiList = Object.values(bayiMap).sort((a, b) => 
         a.BAYI_ADI.localeCompare(b.BAYI_ADI)

@@ -13,32 +13,52 @@ function Geciken() {
   }, []);
 
   const fetchGecikenSiparisler = async () => {
-    const bugun = new Date();
-    const allGeciken = [];
-
-    for (let week = 1; week <= 4; week++) {
-      const weekRef = ref(database, `haftalar/week_${week}`);
-      const weekSnapshot = await get(weekRef);
+    try {
+      const ordersRef = ref(database, 'siparisler');
+      const snapshot = await get(ordersRef);
       
-      if (weekSnapshot.exists()) {
-        const weekData = Object.values(weekSnapshot.val());
+      if (!snapshot.exists()) {
+        setGecikenSiparisler([]);
+        return;
+      }
+      
+      const allOrders = Object.values(snapshot.val());
+      const bugun = new Date();
+      const gecikenList = [];
+      
+      allOrders.forEach(order => {
+        const durum = order.DURUMU || 'BEKLEMEDE';
         
-        weekData.forEach(order => {
-          const durum = order.DURUMU || 'BEKLEMEDE';
+        // Sadece BEKLEMEDE olanları kontrol et
+        if (durum === 'BEKLEMEDE' || durum === 'Bekliyor' || durum === '') {
+          const tarihStr = (order.TARIH || '').toString().split(' ')[0];
           
-          if (order.TARIH && (durum === 'BEKLEMEDE' || durum === 'Bekliyor' || !durum)) {
-            const orderDate = new Date(order.TARIH);
-            const gunFarki = Math.floor((bugun - orderDate) / (1000 * 60 * 60 * 24));
-            
-            if (gunFarki > 15) {
-              allGeciken.push({...order, gunFarki, week});
+          if (tarihStr.includes('.') || tarihStr.includes('/')) {
+  const parts = tarihStr.split(/[./]/); // Nokta veya slash ile ayır
+  if (parts.length === 3) {
+    const day = parseInt(parts[0]);
+    const month = parseInt(parts[1]) - 1;
+    const year = parseInt(parts[2]); // 2026 gibi zaten 4 haneli
+    
+    const orderDate = new Date(year, month, day);
+              const gunFarki = Math.floor((bugun - orderDate) / (1000 * 60 * 60 * 24));
+              
+              if (gunFarki > 15) {
+                gecikenList.push({
+                  ...order,
+                  gunFarki: gunFarki
+                });
+              }
             }
           }
-        });
-      }
+        }
+      });
+      
+      setGecikenSiparisler(gecikenList);
+    } catch (error) {
+      console.error('Geciken siparişler yüklenirken hata:', error);
+      setGecikenSiparisler([]);
     }
-
-    setGecikenSiparisler(allGeciken);
   };
 
   return (
@@ -54,13 +74,13 @@ function Geciken() {
         <table className="orders-table">
           <thead>
             <tr>
-              <th>HAFTA</th>
               <th>TARİH</th>
               <th>GÜN FARKI</th>
               <th>EVRAKNO</th>
               <th>CARİADI</th>
               <th>STK</th>
               <th>STA</th>
+              <th>ŞEHİR</th>
               <th>MİKTAR</th>
               <th>DURUM</th>
             </tr>
@@ -75,13 +95,13 @@ function Geciken() {
             ) : (
               gecikenSiparisler.map((order, index) => (
                 <tr key={index}>
-                  <td>{order.week}. Hafta</td>
                   <td>{order.TARIH}</td>
                   <td style={{color: '#d32f2f', fontWeight: 'bold'}}>{order.gunFarki} gün</td>
                   <td>{order.EVRAKNO}</td>
                   <td>{order.CARIADI}</td>
                   <td>{order.STK}</td>
                   <td>{order.STA}</td>
+                  <td>{order.SEHIR || '-'}</td>
                   <td>{order.MIKTAR}</td>
                   <td>{order.DURUMU || 'BEKLEMEDE'}</td>
                 </tr>

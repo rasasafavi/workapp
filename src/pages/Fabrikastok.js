@@ -83,7 +83,7 @@ const handleSaveNewRows = async () => {
         URUN_ADET: currentStock + parseInt(newRow.URUN_ADET || 0)
       });
     } else {
-      const newStockKey = `stock_${Date.now()}_${Math.random()}`;
+      const newStockKey = `stock_${Date.now()}`;
       await set(ref(database, `stoklar/${newStockKey}`), newRow);
     }
   }

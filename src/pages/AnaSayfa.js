@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-
 import { getWeekDates } from '../utils/weekHelpers';
 import '../styles/AnaSayfa.css';
 import { database } from '../firebase-config';
@@ -37,86 +36,89 @@ function AnaSayfa() {
     return null;
   };
 
-const fetchOrders = async () => {
-  const ordersRef = ref(database, 'siparisler');
-  const snapshot = await get(ordersRef);
-  
-  const data = snapshot.val();
-  if (data) {
-    const ordersArray = Object.values(data);
+  const fetchOrders = async () => {
+    const ordersRef = ref(database, 'siparisler');
+    const snapshot = await get(ordersRef);
     
-    // Her siparişin hafta ve durum bilgisini al
-   const ordersWithWeek = await Promise.all(
-  ordersArray.map(async (order) => {
-    const weekInfo = await getOrderWeekAndStatus(order.EVRAKNO);
-    return {
-      ...order,
-      weekNumber: weekInfo?.week,
-      guncelDurum: weekInfo?.durum || order.DURUMU
-    };
-  })
-);
+    const data = snapshot.val();
+    if (data) {
+      const ordersArray = Object.values(data);
+      
+      // Her siparişin hafta ve durum bilgisini al
+      const ordersWithWeek = await Promise.all(
+        ordersArray.map(async (order) => {
+          const weekInfo = await getOrderWeekAndStatus(order.EVRAKNO);
+          return {
+            ...order,
+            weekNumber: weekInfo?.week,
+            guncelDurum: weekInfo?.durum || order.DURUMU
+          };
+        })
+      );
 
-// Tekrarlı siparişleri temizle (EVRAKNO'ya göre)
-const uniqueOrders = ordersWithWeek.filter((order, index, self) =>
-  index === self.findIndex((o) => o.EVRAKNO === order.EVRAKNO)
-);
+      // Tekrarlı siparişleri temizle (EVRAKNO'ya göre)
+      const uniqueOrders = ordersWithWeek.filter((order, index, self) =>
+        index === self.findIndex((o) => o.EVRAKNO === order.EVRAKNO)
+      );
 
-setOrders(uniqueOrders);
-  } else {
-    setOrders([]);
-  }
-};
-
-const handleAddToWeek = async (order, week) => {
-  const weekRef = ref(database, `haftalar/week_${week}`);
-  const snapshot = await get(weekRef);
-  const weekData = snapshot.exists() ? snapshot.val() : {};
-  
-  const exists = Object.values(weekData).find(o => o.EVRAKNO === order.EVRAKNO);
-  if (exists) {
-    setShowWeekMenu(null);
-    return;
-  }
-  
-  const weekDates = getWeekDates(week - 1);
-  const weekEndDate = weekDates.bitis.toISOString().split('T')[0];
-  
-  // Sadece Excel'den gelen alanları al (weekNumber ve guncelDurum hariç)
-  const cleanOrder = {
-    SEHIR: order.SEHIR,
-    TARIH: order.TARIH || weekEndDate,
-    EVRAKNO: order.EVRAKNO,
-    CARIADI: order.CARIADI || order['CARİADI'],
-    STK: order.STK,
-    STA: order.STA,
-    ACIKLAMA: order.ACIKLAMA,
-    AYAK_BILGISI: order.AYAK_BILGISI,
-    MIKTAR: order.MIKTAR,
-    STB: order.STB,
-    DURUMU: order.DURUMU || 'BEKLEMEDE',
-    week: week,
-    addedDate: new Date().toISOString()
+      setOrders(uniqueOrders);
+    } else {
+      setOrders([]);
+    }
   };
-  
-  const newOrderKey = `order_${Date.now()}`;
-  await set(ref(database, `haftalar/week_${week}/${newOrderKey}`), cleanOrder);
-  
-  setShowWeekMenu(null);
-};
+
+  const handleAddToWeek = async (order, week) => {
+    const weekRef = ref(database, `haftalar/week_${week}`);
+    const snapshot = await get(weekRef);
+    const weekData = snapshot.exists() ? snapshot.val() : {};
+    
+    const exists = Object.values(weekData).find(o => o.EVRAKNO === order.EVRAKNO);
+    if (exists) {
+      setShowWeekMenu(null);
+      return;
+    }
+    
+    const weekDates = getWeekDates(week - 1);
+    const weekEndDate = weekDates.bitis.toISOString().split('T')[0];
+    
+    // Sadece Excel'den gelen alanları al (weekNumber ve guncelDurum hariç)
+    const cleanOrder = {
+      SEHIR: order.SEHIR,
+      TARIH: order.TARIH || weekEndDate,
+      EVRAKNO: order.EVRAKNO,
+      CARIADI: order.CARIADI || order['CARİADI'],
+      STK: order.STK,
+      STA: order.STA,
+      ACIKLAMA: order.ACIKLAMA,
+      AYAK_BILGISI: order.AYAK_BILGISI,
+      MIKTAR: order.MIKTAR,
+      STB: order.STB,
+      DURUMU: order.DURUMU || 'BEKLEMEDE',
+      week: week,
+      addedDate: new Date().toISOString()
+    };
+    
+    const newOrderKey = `order_${Date.now()}`;
+    await set(ref(database, `haftalar/week_${week}/${newOrderKey}`), cleanOrder);
+    
+    setShowWeekMenu(null);
+  };
 
   // Arama filtresi
   const filteredOrders = orders.filter(order => {
-    if (!searchTerm) return true;
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      const matchesSearch = (
+        (order.STK || '').toLowerCase().includes(search) ||
+        (order.STA || '').toLowerCase().includes(search) ||
+        (order.CARIADI || '').toLowerCase().includes(search) ||
+        (order.EVRAKNO || '').toLowerCase().includes(search) ||
+        (order.SEHIR || '').toLowerCase().includes(search)
+      );
+      if (!matchesSearch) return false;
+    }
     
-    const search = searchTerm.toLowerCase();
-    return (
-      (order.STK || '').toLowerCase().includes(search) ||
-      (order.STA || '').toLowerCase().includes(search) ||
-      (order.CARIADI || '').toLowerCase().includes(search) ||
-      (order.EVRAKNO || '').toLowerCase().includes(search) ||
-      (order.SEHIR || '').toLowerCase().includes(search)
-    );
+    return true;
   });
 
   // Sayfalama hesaplamaları
@@ -192,9 +194,10 @@ const handleAddToWeek = async (order, week) => {
                   {order.weekNumber && (
                     <span style={{
                       display: 'block',
-                      fontSize: '11px',
-                      color: '#666',
-                      marginBottom: '4px'
+                      fontSize: '16px',
+                      fontWeight: '700',
+                      color: '#1a4d2e',
+                      marginBottom: '6px'
                     }}>
                       {order.weekNumber}. Hafta
                     </span>

@@ -59,6 +59,28 @@
   background: #1976d2;
 }
 
+/* Arama kutusu */
+.search-container {
+  padding: 15px 20px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: border 0.3s;
+}
+
+.search-input:focus {
+  border-color: #1a4d2e;
+}
+
 /* Tablo */
 .table-container {
   overflow-x: auto;
@@ -83,6 +105,7 @@
   color: #555;
   border-bottom: 2px solid #ddd;
   border-right: 1px solid #e0e0e0;
+  position: relative;
 }
 
 .orders-table th:last-child {
@@ -149,19 +172,20 @@
   background: #1976d2;
 }
 
+/* Basit durum menüsü */
 .status-menu {
-  position: fixed;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  position: absolute;
+  top: 100%;
+  right: 0;
   background: white;
   border: 2px solid #2196f3;
-  border-radius: 12px;
-  box-shadow: 0 6px 30px rgba(0,0,0,0.3);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   z-index: 1000;
-  min-width: 200px;
+  min-width: 180px;
   overflow: hidden;
 }
+
 .status-option {
   padding: 12px 15px;
   cursor: pointer;
@@ -182,9 +206,160 @@
   padding-left: 20px;
 }
 
+/* Mini filtre butonları */
+.filter-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  margin-left: 5px;
+  padding: 2px 4px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.filter-icon-btn:hover {
+  opacity: 1;
+}
+
+/* Mini filtre menüsü */
+.mini-filter-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 2px solid #1a4d2e;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 1000;
+  min-width: 150px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin-top: 5px;
+}
+
+.mini-filter-option {
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 1px solid #eee;
+  transition: background 0.2s;
+}
+
+.mini-filter-option:last-child {
+  border-bottom: none;
+}
+
+.mini-filter-option:hover {
+  background: #f0f0f0;
+}
+
+/* Stages butonu */
+.stages-btn {
+  padding: 6px 12px;
+  background: #666;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.stages-btn:hover {
+  background: #555;
+  transform: scale(1.05);
+}
+
+/* Stages menü */
+.stages-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 2px solid #666;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  z-index: 1000;
+  min-width: 250px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.stages-header {
+  font-size: 13px;
+  font-weight: 700;
+  color: #666;
+  padding: 10px 12px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.stage-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.stage-option:hover {
+  background: #f0f0f0;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #999;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  flex-shrink: 0;
+}
+
+.checkbox.checked {
+  background: #4caf50;
+  border-color: #4caf50;
+}
+
+/* Gecikmiş Sipariş Stilleri */
+.delayed-row {
+  background: #ffebee !important;
+}
+
+.delayed-row:hover {
+  background: #ffcdd2 !important;
+}
+
+.delayed-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 4px 8px;
+  background: #f44336;
+  color: white;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* Stok yetersiz satır */
+.stock-insufficient-row {
+  background-color: #ffe5e5 !important;
+}
+
+.stock-insufficient-row:hover {
+  background-color: #ffd0d0 !important;
+}
+
 /* Print Stilleri */
 @media print {
-  /* Menü ve yan şeyleri gizle */
   body * {
     visibility: hidden;
   }
@@ -206,14 +381,13 @@
     width: 100%;
   }
   
-  /* Butonları gizle */
   .header-buttons,
   .remove-btn,
-  .status-btn {
+  .status-btn,
+  .stages-btn {
     display: none !important;
   }
   
-  /* Tablo düzeni */
   .orders-table {
     font-size: 10px;
     border: 1px solid #000;
@@ -224,24 +398,4 @@
     padding: 6px 8px;
     border: 1px solid #000;
   }
-}
-
-/* Gecikmiş Sipariş Stilleri */
-.delayed-row {
-  background: #ffebee !important;
-}
-
-.delayed-row:hover {
-  background: #ffcdd2 !important;
-}
-
-.delayed-badge {
-  display: inline-block;
-  margin-left: 8px;
-  padding: 4px 8px;
-  background: #f44336;
-  color: white;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 700;
 }

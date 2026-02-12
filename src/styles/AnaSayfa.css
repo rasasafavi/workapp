@@ -162,3 +162,91 @@
   color: #666;
   font-weight: 500;
 }
+
+/* Filtre butonu */
+.filter-toggle-btn {
+  padding: 10px 20px;
+  background: #1a4d2e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s;
+  margin-left: 10px;
+}
+
+.filter-toggle-btn:hover {
+  background: #2d6a4f;
+}
+.filter-apply-btn {
+  padding: 8px 16px;
+  background: #1a4d2e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.filter-apply-btn:hover {
+  background: #2d6a4f;
+}
+
+/* Filtre paneli */
+.filter-panel {
+  display: flex;
+  gap: 15px;
+  align-items: flex-end;
+  padding: 20px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.filter-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.filter-input,
+.filter-select {
+  padding: 8px 12px;
+  border: 2px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  min-width: 150px;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  border-color: #1a4d2e;
+}
+
+.filter-clear-btn {
+  padding: 8px 16px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.3s;
+}
+
+.filter-clear-btn:hover {
+  background: #c82333;
+}
